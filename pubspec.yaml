@@ -20,19 +20,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^6.0.0
-  flutter_launcher_icons: ^0.14.4
-
-# App icons for Android and iOS: dart run flutter_launcher_icons
-# The Windows icon (every size, so small ones stay sharp): python tool/make_windows_icon.py
-flutter_launcher_icons:
-  image_path: assets/icon/icon.png
-  android: true
-  ios: true
-  remove_alpha_ios: true
-  # Android's shaped icons crop to the middle of this image; the face sits there.
-  adaptive_icon_foreground: assets/icon/icon.png
-  adaptive_icon_foreground_inset: 0 # Fill the shape edge to edge instead of leaving a white ring
-  adaptive_icon_background: "#FFFFFF"
 
 flutter:
   uses-material-design: true
@@ -44,9 +31,3 @@ flutter:
     - assets/sounds/tsu.wav
     - assets/sounds/click.wav
 
-# record_windows 1.0.7 with a fix: a recording that fails to start (no microphone, or microphone access off)
-# crashed the app instead of reporting an error. See the "Suga patch" comment in
-# third_party/record_windows/windows/record_mediatype.cpp.
-dependency_overrides:
-  record_windows:
-    path: third_party/record_windows
