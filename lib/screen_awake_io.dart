@@ -1,0 +1,1 @@
+void keepScreenAwake(bool awake) {}

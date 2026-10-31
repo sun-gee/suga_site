@@ -1,0 +1,58 @@
+# Builds the web app and publishes it to GitHub Pages at https://<user>.github.io/<repo>/ on every push to main.
+# One-time setup: repo Settings > Pages > Source: "GitHub Actions".
+name: Deploy Web
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.32.7
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - run: flutter test
+
+      # --no-web-resources-cdn serves the renderer from Pages too, so the installed app also works offline.
+      - run: flutter build web --release --no-web-resources-cdn --base-href "/${{ github.event.repository.name }}/"
+
+      # Flutter's service worker looks files up relative to the domain, so under /<repo>/ it finds nothing and never
+      # caches anything. Make the lookups relative to its own folder.
+      - name: Fix service worker for a subfolder
+        run: |
+          sed -i -e '/var origin = self.location.origin;/d' \
+            -e '2i const origin = self.registration.scope.slice(0, -1);' build/web/flutter_service_worker.js
+          grep -q 'self.registration.scope' build/web/flutter_service_worker.js
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
