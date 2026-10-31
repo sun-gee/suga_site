@@ -1828,7 +1828,7 @@ class _MetronomePageState extends State<MetronomePage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(32, 20, 32, 12),
+              padding: const EdgeInsets.fromLTRB(32, 16, 32, 16),
               child: Row(
                 children: [
                   const Text(
@@ -1836,15 +1836,13 @@ class _MetronomePageState extends State<MetronomePage> {
                     style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.3),
                   ),
                   const Spacer(),
-                  _segmented(
-                    options: const [0, 1],
-                    selected: _tab,
-                    label: (tab) => tab == 0 ? 'Practice' : 'Sounds',
-                    onSelect: _setTab,
-                  ),
+                  _wideTab(0, Icons.av_timer, 'Practice'),
+                  const SizedBox(width: 10),
+                  _wideTab(1, Icons.graphic_eq, 'Sounds'),
                 ],
               ),
             ),
+            const Divider(height: 1, thickness: 1, color: _lineRaised),
             Expanded(child: _tab == 0 ? _widePractice() : _wideSounds()),
           ],
         ),
@@ -1852,27 +1850,72 @@ class _MetronomePageState extends State<MetronomePage> {
     );
   }
 
+  /// A top-bar tab: big and boxed even when not selected, so it reads as a button.
+  Widget _wideTab(int tab, IconData icon, String label) {
+    final selected = _tab == tab;
+    final color = selected ? _onAccent : _text;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: Material(
+        color: selected ? _accent : _surfaceHigh,
+        shape: RoundedRectangleBorder(
+          side: BorderSide(color: selected ? _accent : _lineRaised),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => _setTab(tab),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, size: 20, color: color),
+                const SizedBox(width: 8),
+                Text(label, style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: color)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// A vertical line between the two columns.
+  static const _columnDivider = VerticalDivider(width: 1, thickness: 1, color: _lineRaised);
+
   Widget _widePractice() {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
-          width: 460,
+          width: 480,
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(32, 16, 20, 24),
+            padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
             children: [
+              _sectionLabel('Tempo'),
+              const SizedBox(height: 8),
               _tempoSection(large: true),
-              const SizedBox(height: 24),
+              const SizedBox(height: 28),
+              _sectionLabel('Play'),
               _transportBar(large: true),
               const SizedBox(height: 14),
               _keyHints(),
             ],
           ),
         ),
+        _columnDivider,
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.fromLTRB(20, 4, 32, 24),
-            children: [_patternCard(), const SizedBox(height: 12), _optionsSection()],
+            padding: const EdgeInsets.fromLTRB(32, 24, 32, 24),
+            children: [
+              _sectionLabel('Pattern'),
+              _patternCard(),
+              const SizedBox(height: 24),
+              _sectionLabel('Options'),
+              _optionsSection(),
+            ],
           ),
         ),
       ],
@@ -1884,10 +1927,11 @@ class _MetronomePageState extends State<MetronomePage> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Expanded(
-          child: ListView(padding: const EdgeInsets.fromLTRB(32, 8, 20, 24), children: _recordSection()),
+          child: ListView(padding: const EdgeInsets.fromLTRB(32, 24, 32, 24), children: _recordSection()),
         ),
+        _columnDivider,
         Expanded(
-          child: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 32, 24), children: _soundChoices()),
+          child: ListView(padding: const EdgeInsets.fromLTRB(32, 24, 32, 24), children: _soundChoices()),
         ),
       ],
     );

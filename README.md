@@ -6,7 +6,7 @@ https://sun-gee.github.io/suga_site/
 
 ## SugAmen Groove
 
-Plays the song's Down or Up pattern, either one part (AB, AC, BB) on loop or the full order (AB, AB, AC, BB). TAP fills in the other direction's hits.
+Plays the song's Down or Up pattern, either one part (AB, AC, BB) on loop or the full order (AB, AB, AC, BB). TAP fills in the other direction's hits. (Not as responsive on web)
 
 ## Sound trimmer
 
