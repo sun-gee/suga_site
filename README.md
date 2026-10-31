@@ -1,16 +1,13 @@
 # Suga
 
-A new Flutter project.
+Practice metronome for the hand-to-hand splits in Suga.
 
-## Getting Started
+https://sun-gee.github.io/suga_site/
 
-This project is a starting point for a Flutter application.
+## SugAmen Groove
 
-A few resources to get you started if this is your first Flutter project:
+Plays the song's Down or Up pattern, either one part (AB, AC, BB) on loop or the full order (AB, AB, AC, BB). TAP fills in the other direction's hits.
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Sound trimmer
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Record a drum hit or import a WAV. It cuts the silence so the sound starts right on the hit, then you can use it as any sound in the app.

@@ -45,6 +45,9 @@ const _beatVolume = 0.6;
 const _subdivisionVolume = 0.4;
 const _minBpm = 30;
 const _maxBpm = 240;
+// From this window width up, the app uses the two-column layout instead of the phone one.
+const _wideBreakpoint = 900.0;
+const _wideMaxWidth = 1240.0;
 
 // Step states: off, or 1..3 for sound A, B and C (Don, Pang, Tsu).
 const _off = 0;
@@ -1071,7 +1074,7 @@ class _MetronomePageState extends State<MetronomePage> {
     );
   }
 
-  Widget _tempoSection() {
+  Widget _tempoSection({bool large = false}) {
     Widget stepButton(IconData icon, String tooltip, int delta) {
       return IconButton(
         tooltip: tooltip,
@@ -1093,17 +1096,17 @@ class _MetronomePageState extends State<MetronomePage> {
           children: [
             stepButton(Icons.remove, 'Slower', -1),
             SizedBox(
-              width: 160,
+              width: large ? 230 : 160,
               child: Column(
                 children: [
                   Text(
                     '$_bpm',
-                    style: const TextStyle(
-                      fontSize: 84,
+                    style: TextStyle(
+                      fontSize: large ? 120 : 84,
                       height: 1,
                       fontWeight: FontWeight.w600,
                       letterSpacing: -3,
-                      fontFeatures: [FontFeature.tabularFigures()],
+                      fontFeatures: const [FontFeature.tabularFigures()],
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -1508,19 +1511,20 @@ class _MetronomePageState extends State<MetronomePage> {
   }
 
   /// The always-visible Start button and tap pad.
-  Widget _transportBar() {
+  Widget _transportBar({bool large = false}) {
     final other = _sugaDirection == 'Down' ? 'Up' : 'Down';
+    final size = large ? 120.0 : 88.0;
     return Container(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
-      decoration: const BoxDecoration(
+      padding: large ? EdgeInsets.zero : const EdgeInsets.fromLTRB(16, 12, 16, 12),
+      decoration: BoxDecoration(
         color: _bg,
-        border: Border(top: BorderSide(color: _surfaceHigh)),
+        border: large ? null : const Border(top: BorderSide(color: _surfaceHigh)),
       ),
       child: Row(
         children: [
           SizedBox(
-            width: 88,
-            height: 88,
+            width: size,
+            height: size,
             child: Material(
               color: _accent,
               borderRadius: BorderRadius.circular(24),
@@ -1541,28 +1545,31 @@ class _MetronomePageState extends State<MetronomePage> {
             child: Semantics(
               button: true,
               label: 'Tap',
-              child: Listener(
-                onPointerDown: (_) => _tapPad(),
-                onPointerUp: (_) => setState(() => _tapPressed = false),
-                onPointerCancel: (_) => setState(() => _tapPressed = false),
-                child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 60),
-                  height: 88,
-                  decoration: BoxDecoration(
-                    color: _tapPressed ? _lineStrong : _surface,
-                    border: Border.all(color: _tapPressed ? _accent : _lineStrong),
-                    borderRadius: BorderRadius.circular(24),
-                  ),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Text('TAP', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 3)),
-                      const SizedBox(height: 4),
-                      Text(
-                        _useSuga ? 'Fills in the $other hits' : 'Plays ${_soundLabel(_tapSound)}',
-                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: _textMuted),
-                      ),
-                    ],
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                child: Listener(
+                  onPointerDown: (_) => _tapPad(),
+                  onPointerUp: (_) => setState(() => _tapPressed = false),
+                  onPointerCancel: (_) => setState(() => _tapPressed = false),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 60),
+                    height: size,
+                    decoration: BoxDecoration(
+                      color: _tapPressed ? _lineStrong : _surface,
+                      border: Border.all(color: _tapPressed ? _accent : _lineStrong),
+                      borderRadius: BorderRadius.circular(24),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Text('TAP', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, letterSpacing: 3)),
+                        const SizedBox(height: 4),
+                        Text(
+                          _useSuga ? 'Fills in the $other hits' : 'Plays ${_soundLabel(_tapSound)}',
+                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w500, color: _textMuted),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1581,42 +1588,42 @@ class _MetronomePageState extends State<MetronomePage> {
       padding: const EdgeInsets.fromLTRB(16, 4, 16, 24),
       children: [
         _screenHeader('Sounds'),
-        _sectionLabel('Record your drum'),
-        _recordCard(),
+        ..._recordSection(),
         const SizedBox(height: 20),
-        _sectionLabel('Groove sounds'),
-        _soundList([
-          for (var step = _stepA; step <= _stepC; step++)
-            (
-              _stepMark(step, 12, _text),
-              _stepLabels[step],
-              _sugaSounds[step - 1],
-              (String s) => _setSugaSound(step, s),
-            ),
-        ]),
-        const SizedBox(height: 20),
-        _sectionLabel('Metronome'),
-        _soundList([(_soundIcon, 'Click', _clickSound, _setClickSound)]),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(4, 8, 4, 0),
-          child: Text(
-            'Beat 1 of each bar plays louder so you can hear where the bar starts.',
-            style: TextStyle(fontSize: 12, color: _textMuted),
-          ),
-        ),
-        const SizedBox(height: 20),
-        _sectionLabel('Tap pad'),
-        _soundList([(_soundIcon, 'Tap sound', _tapSound, _setTapSound)]),
-        const Padding(
-          padding: EdgeInsets.fromLTRB(4, 8, 4, 0),
-          child: Text(
-            'While the SugAmen Groove plays, the tap pad plays the other direction\'s sounds instead.',
-            style: TextStyle(fontSize: 12, color: _textMuted),
-          ),
-        ),
+        ..._soundChoices(),
       ],
     );
   }
+
+  List<Widget> _recordSection() => [_sectionLabel('Record your drum'), _recordCard()];
+
+  List<Widget> _soundChoices() => [
+    _sectionLabel('Groove sounds'),
+    _soundList([
+      for (var step = _stepA; step <= _stepC; step++)
+        (_stepMark(step, 12, _text), _stepLabels[step], _sugaSounds[step - 1], (String s) => _setSugaSound(step, s)),
+    ]),
+    const SizedBox(height: 20),
+    _sectionLabel('Metronome'),
+    _soundList([(_soundIcon, 'Click', _clickSound, _setClickSound)]),
+    const Padding(
+      padding: EdgeInsets.fromLTRB(4, 8, 4, 0),
+      child: Text(
+        'Beat 1 of each bar plays louder so you can hear where the bar starts.',
+        style: TextStyle(fontSize: 12, color: _textMuted),
+      ),
+    ),
+    const SizedBox(height: 20),
+    _sectionLabel('Tap pad'),
+    _soundList([(_soundIcon, 'Tap sound', _tapSound, _setTapSound)]),
+    const Padding(
+      padding: EdgeInsets.fromLTRB(4, 8, 4, 0),
+      child: Text(
+        'While the SugAmen Groove plays, the tap pad plays the other direction\'s sounds instead.',
+        style: TextStyle(fontSize: 12, color: _textMuted),
+      ),
+    ),
+  ];
 
   static const _soundIcon = Icon(Icons.graphic_eq, size: 14, color: _text);
 
@@ -1810,9 +1817,122 @@ class _MetronomePageState extends State<MetronomePage> {
   }
 
   // ---------------------------------------------------------------------------
+  // Wide windows (desktop browsers)
+
+  /// A top bar with the tabs, over two columns that scroll on their own.
+  Widget _wideLayout() {
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: _wideMaxWidth),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 20, 32, 12),
+              child: Row(
+                children: [
+                  const Text(
+                    'SugAmen Practice',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, letterSpacing: -0.3),
+                  ),
+                  const Spacer(),
+                  _segmented(
+                    options: const [0, 1],
+                    selected: _tab,
+                    label: (tab) => tab == 0 ? 'Practice' : 'Sounds',
+                    onSelect: _setTab,
+                  ),
+                ],
+              ),
+            ),
+            Expanded(child: _tab == 0 ? _widePractice() : _wideSounds()),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _widePractice() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          width: 460,
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(32, 16, 20, 24),
+            children: [
+              _tempoSection(large: true),
+              const SizedBox(height: 24),
+              _transportBar(large: true),
+              const SizedBox(height: 14),
+              _keyHints(),
+            ],
+          ),
+        ),
+        Expanded(
+          child: ListView(
+            padding: const EdgeInsets.fromLTRB(20, 4, 32, 24),
+            children: [_patternCard(), const SizedBox(height: 12), _optionsSection()],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _wideSounds() {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Expanded(
+          child: ListView(padding: const EdgeInsets.fromLTRB(32, 8, 20, 24), children: _recordSection()),
+        ),
+        Expanded(
+          child: ListView(padding: const EdgeInsets.fromLTRB(20, 8, 32, 24), children: _soundChoices()),
+        ),
+      ],
+    );
+  }
+
+  /// The keyboard shortcuts in [_handleKey].
+  Widget _keyHints() {
+    Widget hint(String key, String action) {
+      return Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: _surface,
+              border: Border.all(color: _lineStrong),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Text(key, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: _textSoft)),
+          ),
+          const SizedBox(width: 5),
+          Text(action, style: const TextStyle(fontSize: 11, color: _textMuted)),
+        ],
+      );
+    }
+
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 14,
+      runSpacing: 6,
+      children: [hint('Space', 'Start / stop'), hint('Enter', 'Tap'), hint('↑ ↓', 'Tempo')],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
 
   @override
   Widget build(BuildContext context) {
+    if (MediaQuery.sizeOf(context).width >= _wideBreakpoint) {
+      return Focus(
+        autofocus: true,
+        onKeyEvent: _handleKey,
+        child: Scaffold(body: _wideLayout()),
+      );
+    }
     return Focus(
       autofocus: true,
       onKeyEvent: _handleKey,
@@ -1831,7 +1951,7 @@ class _MetronomePageState extends State<MetronomePage> {
             ),
           ),
         ),
-        // Kept to the content's width, so on a wide window (desktop browser) the tabs sit under it.
+        // Kept to the content's width, so on a mid-sized window the tabs sit under it.
         bottomNavigationBar: ColoredBox(
           color: _bg,
           child: Center(
